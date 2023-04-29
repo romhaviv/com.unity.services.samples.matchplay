@@ -53,6 +53,9 @@ namespace Matchplay.Server
         /// </summary>
         public async Task CreateServer()
         {
+            Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+            Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
+
             await UnityServices.InitializeAsync();
 
             m_GameManager = new ServerGameManager(

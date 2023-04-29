@@ -126,7 +126,7 @@ namespace Matchplay.Shared
         public string ToSceneName => ConvertToScene(map);
 
         //QueueNames in the dashboard can be different than your local queue definitions (If you want nice names for them)
-        const string k_MultiplayCasualQueue = "casual-queue";
+        const string k_MultiplayCasualQueue = "RomTestCasual";
         const string k_MultiplayCompetetiveQueue = "competetive-queue";
         static readonly Dictionary<string, GameQueue> k_MultiplayToLocalQueueNames = new Dictionary<string, GameQueue>
         {

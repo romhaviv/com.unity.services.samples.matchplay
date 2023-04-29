@@ -32,9 +32,7 @@ namespace Matchplay.Server
             m_ServerQueryHandler = await m_MultiplayService.StartServerQueryHandlerAsync((ushort)10,
                 "ServerName", "GameType", "0", "MapName");
 
-#pragma warning disable 4014
-            ServerQueryLoop(m_ServerCheckCancel.Token);
-#pragma warning restore 4014
+            _ = ServerQueryLoop(m_ServerCheckCancel.Token);
         }
 
         public void SetServerName(string name)
@@ -55,16 +53,19 @@ namespace Matchplay.Server
         public void SetPlayerCount(ushort count)
         {
             m_ServerQueryHandler.CurrentPlayers = count;
+            Debug.Log($"Set players count in query service. count={m_ServerQueryHandler.CurrentPlayers}");
         }
 
         public void AddPlayer()
         {
             m_ServerQueryHandler.CurrentPlayers += 1;
+            Debug.Log($"Added player in query service. count={m_ServerQueryHandler.CurrentPlayers}");
         }
 
         public void RemovePlayer()
         {
             m_ServerQueryHandler.CurrentPlayers -= 1;
+            Debug.Log($"Removed player in query service. count={m_ServerQueryHandler.CurrentPlayers}");
         }
 
         public void SetMap(string newMap)
@@ -90,8 +91,7 @@ namespace Matchplay.Server
 
         public void Dispose()
         {
-            if (m_ServerCheckCancel != null)
-                m_ServerCheckCancel.Cancel();
+            m_ServerCheckCancel?.Cancel();
         }
     }
 }

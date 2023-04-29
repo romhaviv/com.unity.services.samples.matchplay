@@ -59,15 +59,13 @@ namespace Matchplay.Client
                         if (checkTicket.Type == typeof(MultiplayAssignment))
                         {
                             var matchAssignment = (MultiplayAssignment)checkTicket.Value;
-
+                            Debug.Log($"Polled Ticket: {m_LastUsedTicket} Status: {matchAssignment.Status} ");
                             if (matchAssignment.Status == MultiplayAssignment.StatusOptions.Found)
                                 return ReturnMatchResult(MatchmakerPollingResult.Success, "", matchAssignment);
                             if (matchAssignment.Status == MultiplayAssignment.StatusOptions.Timeout ||
                                 matchAssignment.Status == MultiplayAssignment.StatusOptions.Failed)
                                 return ReturnMatchResult(MatchmakerPollingResult.MatchAssignmentError,
                                     $"Ticket: {m_LastUsedTicket} - {matchAssignment.Status} - {matchAssignment.Message}");
-
-                            Debug.Log($"Polled Ticket: {m_LastUsedTicket} Status: {matchAssignment.Status} ");
                         }
 
                         await Task.Delay(k_GetTicketCooldown);

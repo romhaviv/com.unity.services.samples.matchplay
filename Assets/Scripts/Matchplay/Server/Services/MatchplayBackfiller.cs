@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Matchplay.Shared;
@@ -19,9 +20,17 @@ namespace Matchplay.Server
         int m_MaxPlayers;
         int MatchPlayerCount => m_LocalBackfillTicket?.Properties.MatchProperties.Players.Count ?? 0;
 
-        public MatchplayBackfiller(string connection, string queueName, MatchProperties matchmakerPayloadProperties, int maxPlayers)
+        public MatchplayBackfiller(string connection, string queueName, MatchProperties matchmakerPayloadProperties, int maxPlayers, int maxTeams)
         {
             m_MaxPlayers = maxPlayers;
+            Debug.Log($"Payload teams count has {matchmakerPayloadProperties.Teams.Count}/{maxTeams} teams. adding {maxTeams - matchmakerPayloadProperties.Teams.Count}...");
+            while (matchmakerPayloadProperties.Teams.Count < maxTeams)
+            {
+                var teamId = Guid.NewGuid().ToString();
+                matchmakerPayloadProperties.Teams.Add(
+                    new Team(teamId, teamId, new List<string>()));
+            }
+            Debug.Log($"Payload teams count has {matchmakerPayloadProperties.Teams}/{maxTeams} teams.");
             var backfillProperties = new BackfillTicketProperties(matchmakerPayloadProperties);
             m_LocalBackfillTicket = new BackfillTicket { Id = matchmakerPayloadProperties.BackfillTicketId, Properties = backfillProperties };
 
@@ -42,7 +51,7 @@ namespace Matchplay.Server
                 Debug.LogWarning("Already backfilling, no need to start another.");
                 return;
             }
-
+    
             Debug.Log($"Starting backfill  Server: {MatchPlayerCount}/{m_MaxPlayers}");
 
             //Create a ticket if we don't have one already (via Allocation)
@@ -91,9 +100,19 @@ namespace Matchplay.Server
             }
 
             m_LocalBackfillTicket.Properties.MatchProperties.Players.Remove(playerToRemove);
+            var teamIndex = 0;
+            Team removedFromTeam = null;
+            foreach (var team in m_LocalBackfillTicket.Properties.MatchProperties.Teams)
+            {
+                if (team.PlayerIds.Remove(playerToRemove.Id))
+                {
+                    Debug.Log($"Player {playerToRemove.Id} removed from team [{teamIndex}]-{team.TeamId}({team.TeamName})");
+                    removedFromTeam = team;
+                    break;
+                }
 
-            //We Only have one team in this game, so this simplifies things here
-            m_LocalBackfillTicket.Properties.MatchProperties.Teams[0].PlayerIds.Remove(userID);
+                teamIndex++;
+            }
             m_LocalDataDirty = true;
 
             return MatchPlayerCount;
@@ -131,6 +150,8 @@ namespace Matchplay.Server
             {
                 if (m_LocalDataDirty)
                 {
+                    var updatedProps = m_LocalBackfillTicket.Properties.MatchProperties;
+                    Debug.Log($"Updating backfill ticket : teams: {JsonUtility.ToJson(updatedProps.Teams.Where(t=>t.PlayerIds.Count>0).ToArray())} players: {updatedProps.Players}");
                     await MatchmakerService.Instance.UpdateBackfillTicketAsync(m_LocalBackfillTicket.Id, m_LocalBackfillTicket);
                     m_LocalDataDirty = false;
                 }

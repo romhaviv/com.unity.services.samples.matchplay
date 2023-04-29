@@ -41,6 +41,7 @@ namespace Matchplay.Server
             m_AllocationId = null;
             m_Servercallbacks = new MultiplayEventCallbacks();
             m_Servercallbacks.Allocate += OnMultiplayAllocation;
+            m_Servercallbacks.Deallocate += OnMultiplayDeAllocation;
             m_ServerEvents = await m_MultiplayService.SubscribeToServerEventsAsync(m_Servercallbacks);
 
             var allocationID = await AwaitAllocationID();
@@ -100,6 +101,7 @@ namespace Matchplay.Server
         {
             Debug.Log(
                 $"Multiplay Deallocated : ID: {deallocation.AllocationId}\nEvent: {deallocation.EventId}\nServer{deallocation.ServerId}");
+            _ = ServerSingleton.Instance.Manager.CloseServer();
         }
 
         void OnMultiplayError(MultiplayError error)

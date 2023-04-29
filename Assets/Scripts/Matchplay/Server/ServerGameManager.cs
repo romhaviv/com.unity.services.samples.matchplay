@@ -95,9 +95,6 @@ namespace Matchplay.Server
 
             m_SynchedServerData.map.OnValueChanged += OnServerChangedMap;
             m_SynchedServerData.gameMode.OnValueChanged += OnServerChangedMode;
-            //Set the count to connected players
-            m_MultiplayServerQueryService.SetPlayerCount((ushort)NetworkServer.PlayerCount);
-
         }
 
         async Task<MatchmakingResults> GetMatchmakerPayload(int timeout)
@@ -131,7 +128,7 @@ namespace Matchplay.Server
         async Task StartBackfill(MatchmakingResults payload, GameInfo startingGameInfo)
         {
             m_Backfiller = new MatchplayBackfiller(connectionString, payload.QueueName, payload.MatchProperties,
-                startingGameInfo.MaxUsers);
+                startingGameInfo.MaxUsers, 100);
 
             if (m_Backfiller.NeedsPlayers())
             {
@@ -212,7 +209,7 @@ namespace Matchplay.Server
             return new GameInfo { map = chosenMap, gameMode = chosenMode, gameQueue = queue };
         }
 
-        async Task CloseServer()
+        public async Task CloseServer()
         {
             Debug.Log($"Closing Server");
             await m_Backfiller.StopBackfill();
